@@ -44,7 +44,7 @@ def naked_twins(values):
     # Eliminate the naked twins as possibilities for their peers
     for box in row_nt_boxes:
         for r_peer in row_peers[box]:
-            if row_nt_boxes[box] == values[r_peer]:
+            if r_peer in row_nt_boxes:
                 continue
             else:
                 digit = row_nt_boxes[box]
@@ -52,7 +52,7 @@ def naked_twins(values):
                     values[r_peer] = values[r_peer].replace(d,'')     
     for box in column_nt_boxes:
         for c_peer in column_peers[box]:
-            if column_nt_boxes[box] == values[c_peer]:
+            if c_peer in column_nt_boxes:
                 continue
             else:
                 digit = column_nt_boxes[box]
@@ -60,7 +60,7 @@ def naked_twins(values):
                     values[c_peer] = values[c_peer].replace(d,'')
     for box in square_nt_boxes:
         for s_peer in square_peers[box]:
-            if square_nt_boxes[box] == values[s_peer]:
+            if s_peer in square_nt_boxes:
                 continue
             else:
                 digit = square_nt_boxes[box]
@@ -77,6 +77,8 @@ boxes = cross(rows, cols)
 row_units = [cross(r, cols) for r in rows]
 column_units = [cross(rows, c) for c in cols]
 square_units = [cross(rs, cs) for rs in ('ABC','DEF','GHI') for cs in ('123','456','789')]
+diagonal_up_units = [cross(r, cols) for r, cols in zip(rows, cols)]
+diagonal_down_units = [cross(r, cols) for r, cols in zip(rows[::-1], cols)]
 unitlist = row_units + column_units + square_units
 units = dict((s, [u for u in unitlist if s in u]) for s in boxes)
 peers = dict((s, set(sum(units[s],[]))-set([s])) for s in boxes)
@@ -88,6 +90,8 @@ squares = dict((s, [u for u in square_units if s in u]) for s in boxes)
 row_peers = dict((s, set(sum(row_s[s],[]))-set([s])) for s in boxes)
 column_peers = dict((s, set(sum(columns[s],[]))-set([s])) for s in boxes)
 square_peers = dict((s, set(sum(squares[s],[]))-set([s])) for s in boxes)
+du_units = [f for i in diagonal_up_units for f in i]
+dd_units = [f for i in diagonal_down_units for f in i]
 
 def grid_values(grid):
     """
@@ -130,6 +134,14 @@ def eliminate(values):
         digit = values[box]
         for peer in peers[box]:
             values[peer] = values[peer].replace(digit,'')
+        if box in dd_units and any((len(values[s]) > 1) for s in dd_units):
+            for box2 in dd_units:
+                if not box2 == box:
+                    values[box2] = values[box2].replace(digit,'')
+        if box in du_units and any((len(values[s]) > 1) for s in du_units):
+            for box3 in du_units:
+                if not box3 == box:
+                    values[box3] = values[box3].replace(digit,'')
     return values
 
 def only_choice(values):
@@ -145,11 +157,12 @@ def reduce_puzzle(values):
     while not stalled:
         # Check how many boxes have a determined value
         solved_values_before = len([box for box in values.keys() if len(values[box]) == 1])
-
         # Use the Eliminate Strategy
         values = eliminate(values)
         # Use the Only Choice Strategy
         values = only_choice(values)
+        # Use the Naked Twin Strategy
+        values = naked_twins(values)
         # Check how many boxes have a determined value, to compare
         solved_values_after = len([box for box in values.keys() if len(values[box]) == 1])
         # If no new values were added, stop the loop.
@@ -186,9 +199,11 @@ def solve(grid):
     Returns:
         The dictionary representation of the final sudoku grid. False if no solution exists.
     """
-    #assign_value(values, box, value)
-    
-
+    values = grid_values(grid)
+    values = search(values)
+    for box in boxes:
+        values = assign_value(values, box, values[box])
+    return values
 
 
 
