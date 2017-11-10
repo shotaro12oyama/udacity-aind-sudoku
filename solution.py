@@ -26,8 +26,7 @@ def naked_twins(values):
     """
     if all(len(values[s]) == 1 for s in boxes): 
         return values ## Solved!
-    print(values)
-        # Find all instances of naked twins
+    # Find all instances of naked twins
     t_boxes = [box for box in boxes if len(values[box]) == 2]
     row_nt_boxes = {}
     column_nt_boxes = {}
@@ -42,22 +41,31 @@ def naked_twins(values):
         for s in square_peers[box]:
             if values[s] == values[box]:
                 square_nt_boxes.update({box: values[s]})
-    print(row_nt_boxes)
-    print(column_nt_boxes)
-    print(square_nt_boxes)
-
     # Eliminate the naked twins as possibilities for their peers
-    for box1 in row_nt_boxes:
-        for r_peer in row_peers[box1]:
-            if row_nt_boxes[box1] == values[r_peer]:
+    for box in row_nt_boxes:
+        for r_peer in row_peers[box]:
+            if row_nt_boxes[box] == values[r_peer]:
                 continue
             else:
-                digit = row_nt_boxes[box1]
+                digit = row_nt_boxes[box]
                 for d in digit:
-                    values[r_peer] = values[r_peer].replace(digit,'')
-    #display(values)
-
-    #display(values)
+                    values[r_peer] = values[r_peer].replace(d,'')     
+    for box in column_nt_boxes:
+        for c_peer in column_peers[box]:
+            if column_nt_boxes[box] == values[c_peer]:
+                continue
+            else:
+                digit = column_nt_boxes[box]
+                for d in digit:
+                    values[c_peer] = values[c_peer].replace(d,'')
+    for box in square_nt_boxes:
+        for s_peer in square_peers[box]:
+            if square_nt_boxes[box] == values[s_peer]:
+                continue
+            else:
+                digit = square_nt_boxes[box]
+                for d in digit:
+                    values[s_peer] = values[s_peer].replace(d,'')
     return values
 
 
@@ -73,11 +81,11 @@ unitlist = row_units + column_units + square_units
 units = dict((s, [u for u in unitlist if s in u]) for s in boxes)
 peers = dict((s, set(sum(units[s],[]))-set([s])) for s in boxes)
 
-rows = dict((s, [u for u in row_units if s in u]) for s in boxes)
+row_s = dict((s, [u for u in row_units if s in u]) for s in boxes)
 columns = dict((s, [u for u in column_units if s in u]) for s in boxes)
 squares = dict((s, [u for u in square_units if s in u]) for s in boxes)
 
-row_peers = dict((s, set(sum(rows[s],[]))-set([s])) for s in boxes)
+row_peers = dict((s, set(sum(row_s[s],[]))-set([s])) for s in boxes)
 column_peers = dict((s, set(sum(columns[s],[]))-set([s])) for s in boxes)
 square_peers = dict((s, set(sum(squares[s],[]))-set([s])) for s in boxes)
 
@@ -178,6 +186,8 @@ def solve(grid):
     Returns:
         The dictionary representation of the final sudoku grid. False if no solution exists.
     """
+    #assign_value(values, box, value)
+    
 
 
 
